@@ -3,7 +3,7 @@
     "description": "PHP Spreadsheet Template Engine",
     "keywords": ["step", "framework", "PHPSpreadsheet"],
     "homepage": "http://www.vishwayon.com/",
-    "type": "framework",
+    "type": "library",
     "license": "MIT",
     "minimum-stability": "stable",
     "require": {
