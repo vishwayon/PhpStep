@@ -34,7 +34,7 @@ First, create an sample.xlsx file with following structure:
 |               |               |
 | Country       | Population    |
 | $Each{stats}  |               |
-| ${country}    | ${population} |
+| $F{country}   |$F{population} |
 
 
 You can apply various formats to the cells and also create normal formulas.
