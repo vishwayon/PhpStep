@@ -3,7 +3,7 @@
 PHP Spreadsheet Template Engine 
 
 Thanks to [PHPOffice/PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet), we are able to generate various types of spreadsheets directly from php.
-PhpStep is an attempt to automate data populated spreadsheets using *template tags*.
+PhpStep is an attempt to automate data populated spreadsheets using **template tags**.
 
 In this project, we put together an existing xslx file containing some template attributes and a structured model 
 or json data to output a ready to use spreadsheet with user readable data.
@@ -21,8 +21,8 @@ Currently, use the git repository for usage.
 
 ## Supported *Template Tags*
 
-*   *$F{field_name}* - A field/property in the class/data source
-*   *$Each{Iterator}* - Any collection object/array implementing Iterator interface 
+*   **$F{field_name}** - A field/property in the class/data source
+*   **$Each{Iterator}** - Any collection object/array implementing Iterator interface 
 
 ### Sample Code
 
