@@ -15,9 +15,11 @@ or json data to output a ready to use spreadsheet with user readable data.
 
 ### Installation and Usage
 
-Publish to composer pending
+```bash
+composer require vishwayon/phpstep
+```
 
-Currently, use the git repository for usage.
+Or, use the git repository.
 
 ## Supported *Template Tags*
 
