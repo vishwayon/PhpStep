@@ -19,7 +19,7 @@ Publish to composer pending
 
 Currently, use the git repository for usage.
 
-## Supported *Template Tags*
+## Supported Template Tags
 
 *   **$F{field_name}** - A field/property in the class/data source
 *   **$Each{Iterator}** - Any collection object/array implementing Iterator interface 
@@ -63,6 +63,9 @@ $writer->save('sampleResult.xlsx');
 
 ```
 For complex methods, refer to test/TestRenderWorksheet.php and testData.xlsx
+
+## Limitations
+* Absolute formulas in the worksheet (e.g: $D$13) will not work. They would reference incorrect cells after rendering
 
 ### License
 PhpStep is licensed under [MIT](https://github.com/vishwayon/PhpStep/blob/master/LICENSE).
