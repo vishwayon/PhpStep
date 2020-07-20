@@ -71,6 +71,7 @@ class RenderWorksheet {
                         // Remove row->field markers
                         $worksheet->removeRow($eachRowMarker);
                         $worksheet->removeRow($row-1);
+                        $row--;
                     }
                 }
                 $hRow = $worksheet->getHighestRow();
@@ -98,6 +99,8 @@ class RenderWorksheet {
                     '$Each{' => '', '}' => ''
                 ]);
             $pType->tranInfo = $this->buildTranInfo($worksheet, $cell->getRow());
+        } elseif ($val !== null && isset($val)) {
+            $pType->currentValue = $val;
         }
         return $pType;
     }
@@ -106,6 +109,8 @@ class RenderWorksheet {
         if ($ptype->getType() != PatternType::PATTERN_TYPE_NONE && property_exists($model, $ptype->propName)) {
             $prop = $ptype->propName;
             $cell->setValue($model->$prop);
+        } elseif ($ptype->getType() == PatternType::PATTERN_TYPE_COPY) { // Set the value as is
+            $cell->setValue($ptype->currentValue);
         }
     }
     
@@ -117,7 +122,12 @@ class RenderWorksheet {
         $propRange = [];
         for($cc = 1; $cc <= $hCol; $cc++) {
             $cCell = $worksheet->getCellByColumnAndRow($cc, $row);
-            $propRange[$cc] = $this->parsePattern($worksheet, $cCell);
+            $ptype = $this->parsePattern($worksheet, $cCell);
+            if ($ptype->getType() == PatternType::PATTERN_TYPE_NONE) {
+                // Since this is an Array, we set the cell value to be copied
+                $ptype->setType(PatternType::PATTERN_TYPE_COPY);
+            }
+            $propRange[$cc] = $ptype;
         }
         return $propRange;
     }
