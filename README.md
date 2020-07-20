@@ -16,7 +16,7 @@ or json data to output a ready to use spreadsheet with user readable data.
 ### Installation and Usage
 
 ```bash
-composer require vishwayon/phpstep
+composer require vishwayon/phpstep "^0.1"
 ```
 
 Or, use the git repository.
