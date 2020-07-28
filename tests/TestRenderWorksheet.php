@@ -7,6 +7,8 @@
  */
 require '../vendor/autoload.php';
 
+//defined('PHPSTEP_TEST') or define('PHPSTEP_TEST', true);
+
 $model = new \stdClass();
 $model->branch_name = 'First Company';
 $model->period_desc = 'Report Period: Between 2020-04-01 And 2020-04-30';
