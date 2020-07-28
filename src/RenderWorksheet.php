@@ -25,23 +25,21 @@ use PhpStep\base\PatternType;
  * @author girish
  */
 class RenderWorksheet {
-    /**
+    /** @deprecated since 0.3
      * Contains a collection of regex patterns to search
      * @var array
      */
     private $patterns = [
-        'field' => '/\$F\{\S{1,}\}/',  // Field with pattern $F{field_name}
+        'field' => '/\$F\{(\w{1,}|_)\}/',  // Field with pattern $F{field_name}
         'each' => '/\$Each\{\S{1,}\}/' // Each with pattern $Each{array_name}
     ];
     
     /**
-     * Applies data to the requested worksheet
-     * Data should always be a model with accessible properties
-     * 
-     * @param Worksheet $worksheet      The worksheet template
-     * @param mixed $data               A data structure/model that contains properties to be applied to the worksheet
+     * @deprecated since 0.3
+     * @param Worksheet $worksheet
+     * @param type $model
      */
-    public function applyData(Worksheet $worksheet, $model) {
+    public function applyDataV1(Worksheet $worksheet, $model) {
         $hRow = $worksheet->getHighestRow();
         $hCol = Coordinate::columnIndexFromString($worksheet->getHighestColumn());
         for ($row = 1; $row <= $hRow; $row++) {
@@ -49,7 +47,7 @@ class RenderWorksheet {
                 $cell = $worksheet->getCellByColumnAndRow($col, $row);
                 $ptype = $this->parsePattern($worksheet, $cell);
                 if($ptype->getType() == PatternType::PATTERN_TYPE_FIELD) {
-                    $this->setCellData($cell, $ptype, $model);
+                    $this->setCellDataV1($cell, $ptype, $model);
                 } elseif ($ptype->getType() == PatternType::PATTERN_TYPE_EACH) {
                     //Store Each Row marker
                     $eachRowMarker = $row; 
@@ -62,7 +60,7 @@ class RenderWorksheet {
                             $worksheet->insertNewRowBefore($row, 1);
                             foreach($ptype->tranInfo as $cc => $cptype) {
                                 $cell = $worksheet->getCellByColumnAndRow($cc, $row);
-                                $this->setCellData($cell, $cptype, (object)$itm);
+                                $this->setCellDataV1($cell, $cptype, (object)$itm);
                                 // Copy cell styles to inserted row
                                 $worksheet->duplicateStyle($worksheet->getStyleByColumnAndRow($cc, $row+1), Coordinate::stringFromColumnIndex($cc).$row);
                             }
@@ -80,6 +78,73 @@ class RenderWorksheet {
     }
     
     /**
+     * Applies data to the requested worksheet
+     * Data should always be a model with accessible properties
+     * 
+     * @param Worksheet $worksheet      The worksheet template
+     * @param mixed $data               A data structure/model that contains properties to be applied to the worksheet
+     */
+    public function applyData(Worksheet $ws, $model) {
+        $hRow = $ws->getHighestRow();
+        $hCol = Coordinate::columnIndexFromString($ws->getHighestColumn());
+        for ($row = 1; $row <= $hRow; $row++) {
+            for ($col = 1; $col <= $hCol; $col++) {
+                $cell = $ws->getCellByColumnAndRow($col, $row);
+                $cn = Parser::parse($ws, $cell);
+                if ($cn->tokens[0] instanceof Tokens\FieldToken) {
+                    $this->setCellData($cell, $cn, $model);
+                } elseif ($cn->tokens[0] instanceof Tokens\EachToken) {
+                    //Store Each Row marker
+                    $eachRowMarker = $row; 
+                    $row++;
+                    $token = $cn->tokens[0];
+                    if (property_exists($model, $token->prop())) {
+                        $prop = $token->prop();
+                        $childItems = $model->$prop;
+                        foreach($childItems as $itm) {
+                            // insert row in sheet
+                            $ws->insertNewRowBefore($row, 1);
+                            foreach($token->rowCells as $cc => $cptype) {
+                                $cell = $ws->getCellByColumnAndRow($cc, $row);
+                                $this->setCellData($cell, $cptype, (object)$itm);
+                                // Copy cell styles to inserted row
+                                $ws->duplicateStyle($ws->getStyleByColumnAndRow($cc, $row+1), Coordinate::stringFromColumnIndex($cc).$row);
+                            }
+                            $row++;
+                        }
+                        // Remove row->field markers
+                        $ws->removeRow($row);
+                        $ws->removeRow($eachRowMarker);
+                        $row--;
+                    }
+                } elseif ($cn->tokens[0] instanceof Tokens\EachColToken) {
+                    // blank text
+                }
+                $hRow = $ws->getHighestRow();
+            }
+        }
+    }
+    
+    /**
+     * Sets the value for a Cell based on the CellNode
+     * @param Cell $cell                The target cell in the worksheet
+     * @param \PhpStep\CellNode $cn     The compiled CellNode
+     * @param type $model               The Data Model
+     */
+    private function setCellData(Cell $cell, CellNode $cn, $model) {
+        $fields = [];
+        foreach($cn->tokens as $token) {
+            if ($token instanceof Tokens\FieldToken && property_exists($model, $token->field())) {
+                $prop = $token->field();
+                $fields[$token->text] = $model->$prop;
+            }
+        }
+        $cell->setValue(strtr($cn->cellText, $fields));
+        if (defined('PHPSTEP_TEST') && constant('PHPSTEP_TEST'))
+            echo $cn->cellText != '' ? $cn->cellText . PHP_EOL : '';
+    }
+    
+    /** @deprecated since 0.3
      * Returns the patternType from the cell
      * @param Cell $cell
      * @return string
@@ -95,6 +160,9 @@ class RenderWorksheet {
             return $pType;
         } elseif (preg_match($this->patterns['each'], $val, $matched)) {
             $pType = new PatternType(PatternType::PATTERN_TYPE_EACH);
+            $eachOpts = explode(",", strtr($matched[0], [
+                    '$Each{' => '', '}' => ''
+                ]));
             $pType->propName = strtr($matched[0], [
                     '$Each{' => '', '}' => ''
                 ]);
@@ -105,7 +173,13 @@ class RenderWorksheet {
         return $pType;
     }
     
-    private function setCellData(Cell $cell, PatternType $ptype, $model) {
+    /**
+     * @deprecated since 0.3
+     * @param Cell $cell
+     * @param PatternType $ptype
+     * @param type $model
+     */
+    private function setCellDataV1(Cell $cell, PatternType $ptype, $model) {
         if ($ptype->getType() != PatternType::PATTERN_TYPE_NONE && property_exists($model, $ptype->propName)) {
             $prop = $ptype->propName;
             $cell->setValue($model->$prop);
@@ -114,6 +188,12 @@ class RenderWorksheet {
         }
     }
     
+    /**
+     * @deprecated since 0.3
+     * @param Worksheet $worksheet
+     * @param int $eachRowMarker
+     * @return array
+     */
     private function buildTranInfo(Worksheet $worksheet, int $eachRowMarker): array {
         // The fields for binding each would always be listed in the next row
         $row = $eachRowMarker + 1;
