@@ -12,6 +12,10 @@ or json data to output a ready to use spreadsheet with user readable data.
 
 When you have a requirement to generate a Spreadsheet as output from PHP model objects then PhpStep can be very helpful. Typically you would write code to access data form model objects and use a package like [PHPOffice/PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet) to render the output. The output spreadsheet reports might be designed by analysts to meet business needs and this requirement requires developers to codify it and go through a QA process. PhpStep can  eliminate the process of having to push the requirement thorugh a SDLC cycle and gives a person with minimal coding skills the ability to generate these reports.
 
+## When to use StepService.php?
+
+You can publish the StepService.php in any web server and call the page with json data, templated spreadsheet and the output file name. 
+It would render the output file from within an independent process. For request parameters, refer the documentation of StepService.php
 
 ### Dependencies
 
